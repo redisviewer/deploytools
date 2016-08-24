@@ -1,13 +1,14 @@
 package com.thinkjoy.service;
 
+import com.thinkjoy.common.Constants;
+import com.thinkjoy.util.CacheHandle;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,85 +16,30 @@ import java.util.Random;
  * Created by shaojun on 8.21 021.
  */
 public abstract class DeployAbstract {
-    static String[] logFiles = {
-            "You can't find me, you can't find me.",
-            "Hey guy, look here",
-            "Look at me look at me.",
-            "too young too simple", // 太年轻太简单
-            "U can u up", // 你行你上啊
-            "No can no bb", // 不行别BB
-            "Down your sister's rain", // 下你妹的雨
-            "we two who and who", // 咱俩谁跟谁阿
-            "you don’t bird me,I don’t bird you", // 你不鸟我，我也不鸟你
-            "you have seed ，I will give you some color to see see", // 你有种，我要给你点颜色看看
-            "At KFC, We do Chichen Right", // 在肯德基，我们做鸡是对的
-            "You Give Me Stop", // 你给我站住
-            "watch sister", // 表妹
-            "take iron coffee", // 拿铁咖啡
-            "American Chinese not enough", // 美中不足
-            "Where cool where you stay", // 哪凉快上哪呆着
-            "heart flower angry open", // 心花怒放
-            "Hai long is a colour wolf", // 海龙是一条色狼
-            "dry goods", // 干货
-            "want money no, want life one", // 要钱没有，要命一条
-            "People mountain and people sea", // 人山人海
-            "you have two down son", // 你有两下子
-            "let the horse come on", // 放马过来
-            "red face know me", // 红颜知己
-            "seven up eight down", // 七上八下
-            "no three no four", // 不三不四
-            "do morning fuck", // 做早操
-            "you try try see", // 你试试看
-            "love who who", // 爱谁谁
-            "look through autumn water", // 望穿秋水
-            "morning three night four", // 朝三暮四
-            "king eight eggs", // 王八蛋
-            "no care three seven twenty one", // 不管三七二十一
-            "go and look", // 走着瞧
-            "poor light egg", // 穷光蛋
-            "ice snow clever", // 冰雪聪明
-            "first see you，i shit love you", //第一次见你，我便爱上了你
-            "horse horse tiger tiger", // 马马虎虎
-            "no money no talk" // 没钱免谈
-    };
-
-    /**
-     * 备份目录
-     */
-    static String backupDir = null;
-
-    /**
-     * 将日志输出到备份目录
-     */
-    private static Date executeTime = null;
-    private static String executeTimeFormat = null;
-
-    static {
-        executeTime = new Date();
-        executeTimeFormat = new SimpleDateFormat("yyyyMMdd_HHmmss").format(executeTime);
-        backupDir = "backup_" + executeTimeFormat;
-        System.setProperty("log.dir", backupDir);
-        System.setProperty("log.file", logFiles[new Random().nextInt(logFiles.length)] + ".log");
-    }
-
-    static final Logger logger = Logger.getLogger(DeployAbstract.class.getName());
 
     /**
      * 部署目标路径
      */
-    public static String deplyTargetPath = null;
-    static {
-        executeTime = new Date();
-        executeTimeFormat = new SimpleDateFormat("yyyyMMdd_HHmmss").format(executeTime);
-        backupDir = "backup_" + executeTimeFormat;
-        System.setProperty("log.dir", backupDir);
-        System.setProperty("log.file", logFiles[new Random().nextInt(logFiles.length)] + ".log");
-    }
-
+    public static String deployTargetPath = CacheHandle.getCache(Constants.DEPLOY_TARGET_PATH);
     /**
      * 部署文件路径
      */
-    public static String deplySourcePath = null;
+    public static String deploySourcePath = null;
+    static final Logger logger = Logger.getLogger(DeployAbstract.class.getName());
+    /**
+     * 备份目录
+     */
+    static String backupDir = CacheHandle.getCache(Constants.BACKUP_DIR);
+
+    /**
+     * 将日志输出到备份目录
+     */
+    static {
+        System.setProperty("log.dir", backupDir);
+        List<String> colorEggs = CacheHandle.<List<String>>getCache(Constants.COLOR_EGGS);
+        String logFileName = colorEggs.get(new Random().nextInt(colorEggs.size())) + ".log";
+        System.setProperty("log.file", logFileName);
+    }
 
     /**
      * 部署的文件个数
@@ -160,19 +106,18 @@ public abstract class DeployAbstract {
         logger.info("=======================================================================================");
 
         try {
-
             logger.info("\n\n\n\n===================================================== 第一步：读取部署文件 =======================================================");
             // 输入部署文件名称
             inputDeploySourceName();
             // 扫描部署文件、并且读取进缓存中
-            Map<String, File> fileMap = readDeployFiles(deplySourcePath);
+            Map<String, File> fileMap = readDeployFiles(deploySourcePath);
             if (!confimContinue())
                 return;
 
 
             logger.info("\n\n\n\n===================================================== 第二步：备份目标 =======================================================");
             // 输入部署项目路径
-            inputDeployTargetPath();
+            //inputDeployTargetPath();
             // 备份文件
             backupTarget(fileMap);
             if (!confimContinue())

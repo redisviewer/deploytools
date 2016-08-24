@@ -26,7 +26,7 @@ public class DeployImplement extends DeployAbstract {
             logger.info("您的输入为:" + inputString);
         }
 
-        deplyTargetPath = inputString;
+        deployTargetPath = inputString;
     }
 
     /**
@@ -40,7 +40,7 @@ public class DeployImplement extends DeployAbstract {
             return false;
 
         // 判断部署目录与目标路径不能相同
-        if (StringUtils.isNotBlank(deplySourcePath) && deplySourcePath.equalsIgnoreCase(fileDir)) {
+        if (StringUtils.isNotBlank(deployTargetPath) && deployTargetPath.equalsIgnoreCase(fileDir)) {
             logger.error("目标路径与部署文件路径不能一样！\n请重新输入 ：");
             return false;
         }
@@ -73,7 +73,7 @@ public class DeployImplement extends DeployAbstract {
             logger.info("您的输入为:" + inputString);
         }
 
-        deplySourcePath = inputString;
+        deploySourcePath = inputString;
     }
 
     /**
@@ -106,7 +106,7 @@ public class DeployImplement extends DeployAbstract {
                 if(child.isFile())
                     logger.info("读取成功！总数“" + (++deployCount) + "” ： " + child.getPath());
 
-                String relativePath = child.getAbsolutePath().replace(deplySourcePath, File.separator);
+                String relativePath = child.getAbsolutePath().replace(deploySourcePath, File.separator);
                 result.put(relativePath, child);
 
                 // 文件夹递归
@@ -126,24 +126,12 @@ public class DeployImplement extends DeployAbstract {
     public void backupTarget(Map<String, File> deloyDataMap) throws IOException {
         logger.info("################### 备份文件： ###################");
 
-        // 获取项目名称
-        String projectDir = "";
-        String[] data = null;
-        if(File.separator.equals("\\")){
-            data = deplyTargetPath.split("\\\\");
-        } else {
-            data = deplyTargetPath.split(File.separator);
-        }
-        if(data != null) {
-            projectDir = StringUtils.isBlank(data[data.length - 1]) ? data[data.length - 2] : data[data.length - 1];
-        }
-
         // 执行备份
         for (String path : deloyDataMap.keySet()) {
-            File exsitFile = new File(deplyTargetPath + path);
+            File exsitFile = new File(deployTargetPath + path);
             if (exsitFile.exists()) {
                 try {
-                    File backupFile = new File(backupDir + File.separator + projectDir + path);
+                    File backupFile = new File(backupDir + File.separator + "files" + path);
                     if (!backupFile.getParentFile().exists())
                         backupFile.getParentFile().mkdirs();
 
@@ -176,14 +164,14 @@ public class DeployImplement extends DeployAbstract {
             File deployFile = fileMap.get(path);
 
             // 文件删除，文件夹忽略
-            File exsitFile = new File(deplyTargetPath + path);
+            File exsitFile = new File(deployTargetPath + path);
             if (exsitFile.isFile() && exsitFile.exists() && !exsitFile.delete()) {
                 logger.error("部署前，删除目标失败！");
                 throw new IOException("部署前，删除目标失败！");
             }
 
             // 复制部署文件至目标目录
-            File targetFile = new File(deplyTargetPath + path);
+            File targetFile = new File(deployTargetPath + path);
             if (!targetFile.getParentFile().exists()) {
                 targetFile.getParentFile().mkdirs();
             }
